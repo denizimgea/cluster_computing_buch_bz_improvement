@@ -1,0 +1,44 @@
+#!/bin/sh
+
+# Beispiel-Programm aus dem Buch  
+# »Cluster Computing« von         
+# Heiko Bauke und Stephan Mertens 
+#                                 
+# Springer 2005                   
+# ISBN 3-540-42299-4              
+
+
+#
+test -x /usr/sbin/dhcpd || exit 0
+# Defaults
+INTERFACES="eth0"
+# Reads config file (will override defaults above)
+[ -r /etc/default/dhcp ] && . /etc/default/dhcp
+DHCPDPID=/var/run/dhcpd.pid
+case "$1" in
+        start)
+                echo -n "Starting DHCP server: dhcp"
+                start-stop-daemon --start --quiet --pidfile $DHCPDPID \
+                        --exec /usr/sbin/dhcpd -- -q $INTERFACES
+                echo "."
+                ;;
+        stop)
+                echo -n "Stopping DHCP server: dhcp"
+                start-stop-daemon --stop --quiet --pidfile $DHCPDPID
+                echo "."
+                ;;
+        restart)
+                echo -n "Stopping DHCP server: dhcp"
+                start-stop-daemon --stop --quiet --pidfile $DHCPDPID
+                echo "."
+                sleep 2
+                echo -n "Starting DHCP server: dhcp"
+                start-stop-daemon --start --quiet --pidfile $DHCPDPID \
+                        --exec /usr/sbin/dhcpd -- -q $INTERFACES
+                echo "."
+                ;;
+        *)
+                echo "Usage: /etc/init.d/dhcp {start|stop|restart}"
+                exit 1 
+esac
+exit 0

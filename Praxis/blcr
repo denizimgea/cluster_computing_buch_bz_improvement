@@ -1,0 +1,37 @@
+#! /bin/sh
+
+# Beispiel-Programm aus dem Buch  
+# »Cluster Computing« von         
+# Heiko Bauke und Stephan Mertens 
+#                                 
+# Springer 2005                   
+# ISBN 3-540-42299-4              
+
+
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+NAME="blcr"
+DESC="checkpoint restart environment"
+RELEASE=`uname -r`
+
+case "$1" in
+  start)
+	echo -n "Starting $DESC: $NAME"
+        insmod /usr/local/lib/blcr/$RELEASE/vmadump_blcr.o
+	insmod /usr/local/lib/blcr/$RELEASE/blcr.o
+	echo "."
+	;;
+  stop)
+        echo -n "Stopping $DESC: $NAME"
+        rmmod blcr
+        rmmod vmadump_blcr
+        echo "."
+        ;;
+  *)
+	N=/etc/init.d/$NAME
+	echo "Usage: $N {start|stop}"
+	exit 1
+	;;
+esac
+
+exit 0

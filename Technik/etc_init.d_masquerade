@@ -1,0 +1,48 @@
+#! /bin/sh
+
+# Beispiel-Programm aus dem Buch  
+# »Cluster Computing« von         
+# Heiko Bauke und Stephan Mertens 
+#                                 
+# Springer 2005                   
+# ISBN 3-540-42299-4              
+
+
+#
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+NAME="masquerade"
+DESC="masquerading"
+set -e
+case "$1" in
+  start)
+        echo -n "Starting $DESC: $NAME"
+        # Load the NAT module (this pulls in all the others).
+        modprobe iptable_nat
+        # Allow outgoing packets, but let only packets that are related
+        # to some outgoing packets.
+        iptables -P FORWARD DROP
+        iptables -A FORWARD -i eth0 -o eth1 -j ACCEPT
+        iptables -A FORWARD -i eth1 -o eth0 -m state \
+          --state ESTABLISHED,RELATED -j  ACCEPT
+        # In the NAT table (-t nat), Append a rule (-A) after routing
+        # (POSTROUTING) for all packets going out eth1 (-o eth1) which 
+        # says to MASQUERADE the connection (-j MASQUERADE).
+        iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
+        # Turn on IP forwarding
+        echo 1 > /proc/sys/net/ipv4/ip_forward
+        echo "."
+        ;;
+  stop)
+        echo -n "Stopping $DESC: $NAME"
+        iptables -t nat -D POSTROUTING -o eth1 -j MASQUERADE
+        # Turn off IP forwarding
+        echo 0 > /proc/sys/net/ipv4/ip_forward
+        echo "."
+        ;;
+  *)
+        N=/etc/init.d/$NAME
+        echo "Usage: $N {start|stop}" >&2
+        exit 1
+        ;;
+esac
+exit 0

@@ -1,0 +1,21 @@
+# Beispiel-Programm aus dem Buch  
+# »Cluster Computing« von         
+# Heiko Bauke und Stephan Mertens 
+#                                 
+# Springer 2005                   
+# ISBN 3-540-42299-4              
+
+
+@ "Bounds"
+"Upper" vector 8 3.1416 6.2832 3.1416 6.2832 3.1416 6.2832 3.1416 6.2832 
+"Lower" vector 8 0      0      0      0      0      0      0      0
+@@
+@ "Evaluator"
+"Executable Name" string "./thomson"
+"Input Prefix" string "thomson_in"
+"Output Prefix" string "thomson_out"
+@@
+@ "Solver"
+"Debug" int 1
+"Precision" int 2
+"Initial X" vector 8 2.179 .6912 1.389 .9551 2.137 .9604 .7892 .7634

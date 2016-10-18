@@ -1,0 +1,44 @@
+#! /bin/sh
+
+# Beispiel-Programm aus dem Buch  
+# »Cluster Computing« von         
+# Heiko Bauke und Stephan Mertens 
+#                                 
+# Springer 2005                   
+# ISBN 3-540-42299-4              
+
+
+#
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+NAME=lm-sensors
+DESC="harware monitoring"
+set -e
+case "$1" in
+  start)
+        echo -n "Starting $DESC: "
+        modprobe i2c-i801; modprobe i2c-isa; modprobe it87
+        /usr/local/bin/sensors -s
+        echo "$NAME."
+        ;;
+  stop)
+        echo -n "Stopping $DESC: "
+        modprobe -r it87; modprobe -r i2c-i801; modprobe -r i2c-isa
+        echo "$NAME."
+        ;;
+  reload)
+        echo "Reloading $DESC configuration files."
+        sensors -s
+        ;;
+  restart|force-reload)
+        echo -n "Restarting $DESC: "
+        ($0 stop) > /dev/null
+        ($0 start) > /dev/null
+        echo "$NAME."
+        ;;
+  *)
+        N=/etc/init.d/$NAME
+        echo "Usage: $N {start|stop|restart|force-reload}" >&2
+        exit 1
+        ;;
+esac
+exit 0
