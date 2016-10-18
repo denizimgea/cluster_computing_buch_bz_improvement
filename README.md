@@ -17,3 +17,7 @@ für Cluster-Computer. Dabei werden anhand konkreter Beispiele die wichtigsten
 Paradigmen paralleler Programmierung vorgestellt. Außerdem werden u.a.
 Entwicklungswerkzeuge, Fehlersuche in parallelen Programmen und Benchmaking
 behandelt.
+
+Das Buch „Cluster Computing” von Heiko Bauke und Stephan Mertens ist im 
+Springer Verlag erschienen.
+http://www.springer.com/de/book/9783540422990
