@@ -71,8 +71,8 @@ int main(int argc, char *argv[]) {
 
   soffset[0]=0;                         roffset[0]=Nx_l;
   soffset[1]=Nx_l-1;                    roffset[1]=-1;
-  soffset[2]=0;                         roffset[2]=(Nx_l+2)*Ny_l;
-  soffset[3]=(Nx_l+2)*(Ny_l-1);         roffset[3]=-(Nx_l+2);
+  soffset[2]=-1;                        roffset[2]=(Nx_l+2)*Ny_l - 1;
+  soffset[3]=(Nx_l+2)*(Ny_l-1) - 1;     roffset[3]=-(Nx_l+2) - 1;
 
   /* Regel des Automaten iterieren */
   for (t=0; t<t_end; ++t) {
