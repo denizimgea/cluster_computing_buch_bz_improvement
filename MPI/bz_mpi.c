@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
   Nx -=Nx%P[0];    Nx_l=Nx/P[0];    
   Ny -=Ny%P[1];    Ny_l=Ny/P[1];
   /* MPI-Datentypen bauen */
-  MPI_Type_vector(1, Nx_l, Nx_l, MPI_INT, &row_t); 
+  MPI_Type_vector(1, Nx_l + 2, Nx_l + 2, MPI_INT, &row_t);
   MPI_Type_commit(&row_t); 
   MPI_Type_vector(Ny_l, 1, Nx_l+2, MPI_INT, &col_t); 
   MPI_Type_commit(&col_t); 
