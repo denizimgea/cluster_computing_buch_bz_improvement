@@ -27,7 +27,7 @@ void bz_iterate(int *X, int *X_new, int Nx, int Ny,
 int main(int argc, char *argv[]) {
   int C_rank, C_size, P[2]={0, 0}, P_periods[2]={1, 1}, P_l[2], 
     *X=NULL, *X_l, *X_l_new, *X_l_t, i, j, k, t, Nx_l, Ny_l,
-    soffset[8], roffset[8], srank[8], rrank[8], coords[2];
+    soffset[4], roffset[4], srank[4], rrank[4], coords[2];
   MPI_Comm comm;
   MPI_Datatype submatrix_t, innermatrix_t, row_t, col_t, types[8]; 
   MPI_Request request;
@@ -60,6 +60,7 @@ int main(int argc, char *argv[]) {
   for (j=0; j<Ny_l; ++j)
     for (i=0; i<Nx_l; ++i) 
       X_l[i+(Nx_l+2)*j]=rand()%n;
+
   /* Daten für MPI_Sendrecv aufbereiten */
   k=0;
   for (j=0; j<=1; ++j)  /* Ränge und Typen für hor. & vert. Austausch */
@@ -67,22 +68,12 @@ int main(int argc, char *argv[]) {
       types[k]=j==0 ? col_t : row_t;
       MPI_Cart_shift(comm, j, i, rrank+k, srank+k);
     }
-  for (j=-1; j<=1; j+=2)  /* Ränge und Typen für diagonalen Austausch */
-    for (i=-1; i<=1; i+=2, ++k) {
-      types[k]=MPI_INT;
-      coords[0]=P_l[0]+i;  coords[1]=P_l[1]+j;  
-      MPI_Cart_rank(comm, coords, srank+k);
-      coords[0]=P_l[0]-i;  coords[1]=P_l[1]-j;  
-      MPI_Cart_rank(comm, coords, rrank+k);
-    }
+
   soffset[0]=0;                         roffset[0]=Nx_l;
   soffset[1]=Nx_l-1;                    roffset[1]=-1;
   soffset[2]=0;                         roffset[2]=(Nx_l+2)*Ny_l;
   soffset[3]=(Nx_l+2)*(Ny_l-1);         roffset[3]=-(Nx_l+2);
-  soffset[4]=0;                         roffset[4]=(Nx_l+2)*Ny_l+Nx_l;
-  soffset[5]=Nx_l-1;                    roffset[5]=(Nx_l+2)*Ny_l-1;
-  soffset[6]=(Nx_l+2)*(Ny_l-1);         roffset[6]=-2;
-  soffset[7]=(Nx_l+2)*(Ny_l-1)+Nx_l-1;  roffset[7]=-1-(Nx_l+2);
+
   /* Regel des Automaten iterieren */
   for (t=0; t<t_end; ++t) {
     for (i=0; i<8; ++i) 
