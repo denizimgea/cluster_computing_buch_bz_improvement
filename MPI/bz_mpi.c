@@ -25,7 +25,7 @@ void bz_iterate(int *X, int *X_new, int Nx, int Ny,
 		int n, int k1, int k2, int g);
 
 int main(int argc, char *argv[]) {
-  int C_rank, C_size, P[2]={0, 0}, P_periods[2]={1, 1}, P_l[2], 
+  int C_rank, C_size, P[2]={0, 0}, P_periods[2]={1, 1}, process_coordinates[2],
     *merged_matrix=NULL, *process_matrix, *updated_process_matrix, *matrix_replace_helper, i, j, k, t, process_grid_width,
     process_grid_height, send_offsets[4], receive_offsets[4], sender_ranks[4], receiver_ranks[4], coords[2];
   MPI_Comm comm;
@@ -35,10 +35,15 @@ int main(int argc, char *argv[]) {
   /* MPI initialisieren und kartesischen Kommunikator bauen */
   MPI_Init(&argc, &argv);
   MPI_Comm_size(MPI_COMM_WORLD, &C_size);
+  /* Create two dimensional cartesian communicator to divide up the grid */
+  // Create a two dimensional layout and save it in the array P
   MPI_Dims_create(C_size, 2, P);
+  // Create the cartesian grid communicator according to the dimension data in the array P, save it in the variable comm.
   MPI_Cart_create(MPI_COMM_WORLD, 2, P, P_periods, 1, &comm);
+  // Save the rank of the process in the cartesian communicator comm.
   MPI_Comm_rank(comm, &C_rank);
-  MPI_Cart_coords(comm, C_rank, 2, P_l);
+  // Save the coordinates of the current process in the variable process_coordinates.
+  MPI_Cart_coords(comm, C_rank, 2, process_coordinates);
   /* Größe des zellulären Automaten abrunden */
   grid_width -=grid_width%P[0];    process_grid_width=grid_width/P[0];
   grid_height -=grid_height%P[1];    process_grid_height=grid_height/P[1];
@@ -87,10 +92,10 @@ int main(int argc, char *argv[]) {
   MPI_Isend(process_matrix, 1, innermatrix_t, 0, gather_tag, comm, &request);
   if (C_rank==0) {
     merged_matrix=secure_malloc(grid_width*grid_height*sizeof(*merged_matrix));
-    for (P_l[1]=0; P_l[1]<P[1]; ++P_l[1])
-      for (P_l[0]=0; P_l[0]<P[0]; ++P_l[0]) {
-        MPI_Cart_rank(comm, P_l, &C_rank);
-        MPI_Recv(merged_matrix+P_l[0]*process_grid_width+P_l[1]*grid_width*process_grid_height,
+    for (process_coordinates[1]=0; process_coordinates[1]<P[1]; ++process_coordinates[1])
+      for (process_coordinates[0]=0; process_coordinates[0]<P[0]; ++process_coordinates[0]) {
+        MPI_Cart_rank(comm, process_coordinates, &C_rank);
+        MPI_Recv(merged_matrix+process_coordinates[0]*process_grid_width+process_coordinates[1]*grid_width*process_grid_height,
 		 1, submatrix_t, C_rank, gather_tag, comm, &status);
       }
     printf("P5\n%i %i\n%i\n", grid_width, grid_height, n);  /* PGM-Header */
