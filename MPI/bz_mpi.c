@@ -15,7 +15,7 @@ int matrix_width = 400, matrix_height = 300;
 enum { gather_tag, sendrecv_tag };
 
 void *secure_malloc(size_t size) {
-  void * p=malloc(size);
+  void *p = malloc(size);
   if (p == NULL)
     MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
   return p;
@@ -25,7 +25,7 @@ void bz_iterate(int *X, int *X_new, int matrix_width, int matrix_height,
 		int n, int k1, int k2, int g);
 
 int main(int argc, char *argv[]) {
-  /* Declaration of the variables */
+  // Declare variables
   int C_rank, C_size, grid_dimensions[2] = {0, 0}, P_periods[2] = {1, 1}, process_coordinates[2],
     *merged_matrix = NULL, *process_matrix, *updated_process_matrix, *matrix_replace_helper, process_matrix_width,
     process_matrix_height, send_offsets[4], receive_offsets[4], sender_ranks[4], receiver_ranks[4];
@@ -34,17 +34,15 @@ int main(int argc, char *argv[]) {
   MPI_Request request;
   MPI_Status status;
 
-  /* Initialisation of MPI*/
+  // Initialize MPI
   MPI_Init(&argc, &argv);
   MPI_Comm_size(MPI_COMM_WORLD, &C_size);
 
-  /* Create two dimensional cartesian communicator to divide up the grid */
-  // Create a two dimensional layout and save it in the array grid_dimensions
+  // Create two-dimensional cartesian communicator to divide up the grid
+  // Create a two-dimensional layout and save it in the array grid_dimensions
   MPI_Dims_create(C_size, 2, grid_dimensions);
-  /*
-   * Create the cartesian grid communicator according to the dimension data in the array grid_dimension,
-   * save it in the variable comm.
-   */
+  // Create the cartesian grid communicator according to the dimension data in the array grid_dimension,
+  // save it in the variable comm.
   MPI_Cart_create(MPI_COMM_WORLD, 2, grid_dimensions, P_periods, 1, &comm);
   // Save the rank of the process in the cartesian communicator comm.
   MPI_Comm_rank(comm, &C_rank);
@@ -53,6 +51,7 @@ int main(int argc, char *argv[]) {
   // Round down matrix_width and matrix_height to ensure each process has a matrix with the same size
   matrix_width -=matrix_width%grid_dimensions[0];    process_matrix_width=matrix_width/grid_dimensions[0];
   matrix_height -=matrix_height%grid_dimensions[1];    process_matrix_height=matrix_height/grid_dimensions[1];
+
   // Create MPI data types for the matrices, row vectors and column vectors.
   MPI_Type_vector(1, process_matrix_width + 2, process_matrix_width + 2, MPI_INT, &row_t);
   MPI_Type_commit(&row_t); 
@@ -62,8 +61,9 @@ int main(int argc, char *argv[]) {
   MPI_Type_commit(&innermatrix_t);
   MPI_Type_vector(process_matrix_height, process_matrix_width, matrix_width, MPI_INT, &submatrix_t);
   MPI_Type_commit(&submatrix_t);
-  /* Speicher für Automaten allozieren und mit Zufallswerten füllen */
-  process_matrix =secure_malloc((process_matrix_width + 2) * (process_matrix_height + 2) * sizeof(int));
+
+  // Allocate memory for the process matrices and fill process matrix with randomized values.
+  process_matrix = secure_malloc((process_matrix_width + 2) * (process_matrix_height + 2) * sizeof(int));
   process_matrix += (process_matrix_width + 2) + 1;
   updated_process_matrix = secure_malloc((process_matrix_width + 2) * (process_matrix_height + 2) * sizeof(int));
   updated_process_matrix += (process_matrix_width + 2) + 1;
@@ -81,14 +81,14 @@ int main(int argc, char *argv[]) {
     }
   send_offsets[0] = 0;
   receive_offsets[0] = process_matrix_width;
-  send_offsets[1] = process_matrix_width-1;
-  receive_offsets[1] =- 1;
-  send_offsets[2] =- 1;
+  send_offsets[1] = process_matrix_width - 1;
+  receive_offsets[1] = -1;
+  send_offsets[2] = -1;
   receive_offsets[2] = (process_matrix_width + 2) * process_matrix_height - 1;
   send_offsets[3] = (process_matrix_width + 2) * (process_matrix_height - 1) - 1;
-  receive_offsets[3] =- (process_matrix_width + 2) - 1;
+  receive_offsets[3] = (-1) * (process_matrix_width + 3);
 
-  // Iterate the cellular automaton. Exchange vectors with neighboring processes afterwards.
+  // Iterate the cellular automaton. Exchange vectors with neighboring processes after each iteration.
   for (int t=0; t < iteration_count; ++t) {
     for (i=0; i<8; ++i) 
       MPI_Sendrecv(process_matrix+send_offsets[i], 1, types[i], sender_ranks[i], sendrecv_tag,
@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
 
   // Collect data from each process. Output it in PGM format.
   MPI_Isend(process_matrix, 1, innermatrix_t, 0, gather_tag, comm, &request);
-  if (C_rank==0) {
+  if (C_rank == 0) {
     merged_matrix = secure_malloc(matrix_width * matrix_height * sizeof(int));
     for (process_coordinates[1] = 0; process_coordinates[1] < grid_dimensions[1]; ++process_coordinates[1])
       for (process_coordinates[0] = 0; process_coordinates[0] < grid_dimensions[0]; ++process_coordinates[0]) {
