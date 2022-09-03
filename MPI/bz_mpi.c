@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
   int k = 0;
   for (int j = 0; j <= 1; ++j)
     for (int i = -1; i <= 1; i += 2, ++k) {
-        (types[k] = j) == 0 ? col_t : row_t;
+        types[k] = j == 0 ? col_t : row_t;
       MPI_Cart_shift(comm, j, i, receiver_ranks + k, sender_ranks + k);
     }
   send_offsets[0] = 0;
@@ -89,8 +89,8 @@ int main(int argc, char *argv[]) {
   receive_offsets[3] = (-1) * (process_matrix_width + 3);
 
   // Iterate the cellular automaton. Exchange vectors with neighboring processes after each iteration.
-  for (int t=0; t < iteration_count; ++t) {
-    for (i=0; i<8; ++i) 
+  for (int t = 0; t < iteration_count; ++t) {
+    for (int i = 0; i < 4; ++i)
       MPI_Sendrecv(process_matrix+send_offsets[i], 1, types[i], sender_ranks[i], sendrecv_tag,
 		   process_matrix+receive_offsets[i], 1, types[i], receiver_ranks[i], sendrecv_tag,
 		   comm, &status);
